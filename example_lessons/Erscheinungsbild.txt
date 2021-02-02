@@ -1,0 +1,25 @@
+das Gesicht,le visage
+die Figur,la figure
+das Haar,les cheveux
+ähneln,ressembler à
+sich ähnlich sein,se ressembler
+hübsch,joli
+die Schönheit,la beauté
+schön,beau
+attraktiv,attirant
+hässlich,laid
+eine gute Figur haben,être bien fait
+groß,grand
+klein,petit
+dick,gros
+dünn,maigre
+schlank,mince
+blass,pâle
+die Frisur,la coiffure
+sich frisieren,se coiffer
+blond,blond
+brünett,brun
+grauhaarig,aux cheveux gris
+rothaarig,roux
+hell,clair
+dunkel,foncé

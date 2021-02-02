@@ -1,0 +1,13 @@
+die Handtasche,le sac à main
+der Geldbeutel,le porte-monnaie
+der Hut,le chapeau
+die Mütze,le bonnet
+der Handschuh,le gant
+die Krawatte,le cravate
+der Regenschirm,le parapluie
+der Ring,le bague
+die Uhr,la montre
+die Brille,les lunettes
+die Sonnenbrille,les lunettes de soleil
+die Halskette,le collier
+das Armband,le bracelet

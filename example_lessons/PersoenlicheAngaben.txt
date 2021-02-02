@@ -1,0 +1,21 @@
+der Herr,le monsieur
+der Mann,l'homme
+Frau,la madame
+die Frau,la femme
+die Dame,la dame
+das Fräulein,la mademoiselle
+das Kind,l'enfant
+der Junge,le garcon
+das Mädchen,la fille
+nennen,appeler
+heißen,s'appeler
+der Name,le nom
+der Nachname,le nom de famillie
+der Vorname,le prénom
+verheiratet,marié
+verwitwet,veuf
+getrennt,séparé
+die Person,la personne
+die Adresse,l'adresse
+die Straße,la rue
+die Hausnummer,le numéro de la maison

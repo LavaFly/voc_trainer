@@ -1,0 +1,40 @@
+die Kleidung,les vêtements
+die Mode,la mode
+elegant,élégant
+sich anziehen,s'habiller
+anziehen,mettre
+ausziehen,enlever
+sich ausziehen,se déshabiller
+anhaben,porter
+anprobieren,essayer
+sich umziehen,se changer
+stehen,aller
+zusammenpassen,aller ensemble
+eng,étroit
+weit,large
+kurz,court
+lang,long
+die Schuhgröße,la pointure
+die Kleidergröße,la taille
+der Mantel,le manteau
+die Jacke,la veste
+die Hose,le pantalon
+die Jeans,le jean
+das T-Shirt,le tee-shirt
+der Pulli,le pull
+das Kleid,la robe
+der Rock,la jupe
+die Shorts,le short
+das Hemd,la chemise
+die Bluse,le chemisier
+der Anzug,le costume
+der Strumpf,le bas
+die Socke,la chaussette
+der Schuh,la chaussure
+die Flipflops,les tongs
+der Schlafanzug,le pyjama
+das Nachthemd,la chemise de nuit
+der Slip,le slip
+die Unterhose,le calecon
+der Badeanzug,le maillot de bain
+der Bikini,le bikini

@@ -1,0 +1,25 @@
+familiär,familial
+die Familie,la famille
+die Großfamilie,la grande famille
+die Eltern,les parents
+der Vater,le père
+der Papa,le papa
+die Mutter,la mère
+die Mama,le maman
+der Sohn,le fils
+die Tochter,la fille
+der Bruder,le frère
+die Schwester,la soeur
+die Geschwister,les frères et soeurs
+die Kinder,les enfants
+der Onkel,l'oncle
+die Tante,la tante
+der Cousin,le cousin
+die Cousine,la cousine
+die Großeltern,les grands-parents
+der Großvater,le grand-père
+die Großmutter,la grand-mère
+der Opa,le papi
+die Oma,le mamie
+zusammenleben,vivre ensemble
+sich kümmern um,s'occuper de

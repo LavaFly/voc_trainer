@@ -1,0 +1,20 @@
+lieb,brave
+nett,gentil
+gut,bon
+freundlich,aimable
+artig,sage
+der Charme,le charme
+charmant,charmant
+die Vernunft,la raison
+vernünftig,raisonnable
+ernst,sérieux
+sympathisch,sympathique
+ruhig,calme
+still,tranquille
+komisch,comique
+der Mut,le courage
+mutig,courageux
+die Dummheit,la bêtise
+dumm,bête
+böse,méchant
+feige,lâche
