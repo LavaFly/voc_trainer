@@ -1,5 +1,0 @@
-Charaktereigenschaften : 37.23 : 19.99 : 5.44
-Accessoires : 48.12 : 33.59 : 24.78
-Bekleidung : 69.69 : 51.87 : 46.95
-Erscheinungsbild : 100.00 : 92.53 : 78.12
-PersoenlicheAngaben : 85.44 : 63.02 : 54.71
