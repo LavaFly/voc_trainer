@@ -46,15 +46,16 @@ function setup() -- not pretty, but works for now
   local answ = tonumber(io.read())
   
   if answ == 1 then -- this is so ugly, but a lookup table wont work
-    folder_name = folder_name and folder_name or choose_option("ls -d */", "Choose folder:\n")
-    file_name = file_name and file_name or choose_option("ls " .. folder_name .. " -tr | sed s'/.txt//'", "\nChoose file:\n")
-    practise_mode = practise_mode and practise_mode or get_practise_mode()
+    folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
+    file_name = file_name~="" and file_name or choose_option("ls " .. folder_name .. " -tr | sed s'/.txt//'", "\nChoose file:\n")
+    file_list[1] = file_name
+    practise_mode = practise_mode~=0 and practise_mode or get_practise_mode()
     practise()
   elseif answ == 2 then
-    folder_name = folder_name and folder_name or choose_option("ls -d */", "Choose folder:\n")
+    folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
     new_voc()
   elseif answ == 3 then
-    folder_name = folder_name and folder_name or choose_option("ls -d */", "Choose folder:\n")
+    folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
     score_overview()
   elseif answ == 4 then
     complete_overview()
@@ -66,7 +67,6 @@ function practise()
   for _=0,#file_list-1 do
     
     io.write(string.format("\nNow testing : %s\n",file_name))
-    
     if practise_mode == 3 then 
       comp_practise()
       return
@@ -108,7 +108,7 @@ function practise()
 end
 function comp_practise()
   local vocs = {}
-  local voc_file = io.input(folder_path .. file_name .. ".txt")
+  local voc_file = io.input(folder_name .. file_name .. ".txt")
   local line_ctr,word_ctr,num_correct,result = 1,1,0,0
   local rnd, now = 0,0
   
@@ -323,7 +323,7 @@ function parse_argument(argument)
     argument = argument .. ","
     parse_lists(argument:gmatch("(%w+),"))
   elseif(argument:find("mode")) then 
-    practise_mode = argument:match("%d")
+    practise_mode = tonumber(argument:match("%d"))
   elseif(argument:find("audio")) then
     audio_mode = true
   elseif(argument:find("speed")) then
@@ -373,7 +373,7 @@ end
 
 file_list = {}
 folder_name,file_name = "",""
-practise_mode = 1
+practise_mode = 0
 audio_mode = false
 audio_speed = "medium" -- slow/fast
 
@@ -426,7 +426,7 @@ function set_defaults() -- TODO
   folder_name = r
   ret = assert(io.popen(string.format("ls %s | head -2",folder_name)))
   r = ret:read()
-  file_name = r == "index.txt" and ret:read() or r
+  file_name = r == "Score.txt" and ret:read() or r
   ret:close()
 end
 function create_folder()
