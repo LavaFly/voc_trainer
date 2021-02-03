@@ -46,15 +46,15 @@ function setup() -- not pretty, but works for now
   local answ = tonumber(io.read())
   
   if answ == 1 then -- this is so ugly, but a lookup table wont work
-    folder_name = folder_name and folder_name or choose_option("ls -d */", "Choose folder:\n")
-    file_name = file_name and file_name or choose_option("ls " .. folder_name .. " -tr | sed s'/.txt//'", "\nChoose file:\n")
-    practise_mode = practise_mode and practise_mode or get_practise_mode()
+    folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
+    file_name = file_name~="" and file_name or choose_option("ls " .. folder_name .. " -tr | sed s'/.txt//'", "\nChoose file:\n")
+    practise_mode = practise_mode==0 and practise_mode or get_practise_mode()
     practise()
   elseif answ == 2 then
-    folder_name = folder_name and folder_name or choose_option("ls -d */", "Choose folder:\n")
+    folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
     new_voc()
   elseif answ == 3 then
-    folder_name = folder_name and folder_name or choose_option("ls -d */", "Choose folder:\n")
+    folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
     score_overview()
   elseif answ == 4 then
     complete_overview()
@@ -373,7 +373,7 @@ end
 
 file_list = {}
 folder_name,file_name = "",""
-practise_mode = 1
+practise_mode = 0
 audio_mode = false
 audio_speed = "medium" -- slow/fast
 
