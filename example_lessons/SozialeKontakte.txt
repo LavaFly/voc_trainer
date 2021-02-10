@@ -1,0 +1,25 @@
+die Freundschaft,l'amitié
+der Freund,le copain
+die Freundin,la copine
+freundschaftlich,amical
+persönlich,personnel
+die Menschen,les gens
+gemeinsam,commun
+das Mitglied,le membre
+der Nachbar,le voisin
+der Typ,le type
+das Treffen,la rencontre
+treffen,rencontrer
+die Versammlung,la réunion
+die Verabredung,le rendez-vous
+sich verabreden,prendre rendez-vouz
+teilnehmen,participer
+der Gast,l'invité
+einladen,inviter
+besuchen,aller voir
+vorbeikommen,passer
+der Bekannte,la connaissance
+der Kontakt,le contact
+Kontakt audnehmen mit jmd,contacter qn
+der Freundeskreis,le groupe d'amis
+befreundet sein mit,être ami

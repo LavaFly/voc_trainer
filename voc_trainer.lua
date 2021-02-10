@@ -46,16 +46,16 @@ function setup() -- not pretty, but works for now
   local answ = tonumber(io.read())
   
   if answ == 1 then -- this is so ugly, but a lookup table wont work
-    folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
-    file_name = file_name~="" and file_name or choose_option("ls " .. folder_name .. " -tr | sed s'/.txt//'", "\nChoose file:\n")
-    file_list[1] = file_name
+    folder_name = folder_name~="" and folder_name or choose_option("folder","ls -d */", "Choose folder:\n")
+    file_name = file_name~="" and file_name or choose_option("file","ls " .. folder_name .. " -tr | sed s'/.txt//'", "\nChoose file:\n")
+    file_list[1] = file_list[1] and file_list[1] or file_name
     practise_mode = practise_mode~=0 and practise_mode or get_practise_mode()
     practise()
   elseif answ == 2 then
-    folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
+    folder_name = folder_name~="" and folder_name or choose_option("folder","ls -d */", "Choose folder:\n")
     new_voc()
   elseif answ == 3 then
-    folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
+    folder_name = folder_name~="" and folder_name or choose_option("folder","ls -d */", "Choose folder:\n")
     score_overview()
   elseif answ == 4 then
     complete_overview()
@@ -64,14 +64,13 @@ function setup() -- not pretty, but works for now
   end
 end
 function practise()
-  for _=0,#file_list-1 do
-    
+  
+  for _=1,#file_list do
     io.write(string.format("\nNow testing : %s\n",file_name))
     if practise_mode == 3 then 
       comp_practise()
       return
     end
-  
     local vocs = {}
     local voc_file = io.input(folder_name .. file_name .. ".txt")
     local line_ctr,word_ctr,num_correct,result = 1,1,0,0
@@ -95,6 +94,9 @@ function practise()
         io.write(" ->correct\n")
         num_correct = num_correct + 1
       else
+        if get_hamming_distance(vocs[a][1],vocs[a][2]) <= 2 then
+          num_correct = num_correct + 0.5
+        end
         io.write(" ->false " .. (practise_mode == 1 and (vocs[a][2]) or (vocs[a][1])) .. "\n")
       end
     end
@@ -102,7 +104,6 @@ function practise()
     local best_score = tonumber(score_check(result))
     io.write(string.format("\n%d out of %d were correct(%3.2f%%)\n",num_correct,line_ctr - 1,result))
     io.write(string.format("\nBest Score : %3.2f%%\n",best_score))
-    
     next_file_from_list()
   end
 end
@@ -130,10 +131,12 @@ function comp_practise()
     rnd = int_divide(math.random(), 0.5)
     io.write((rnd == 1 and (vocs[a][1] .. " in french: ") or (vocs[a][2] .. " in german: ")))
     
-    if (io.stdin:read() == (rnd and vocs[a][2] or vocs[a][1])) then
+    if io.stdin:read() == (rnd and vocs[a][2] or vocs[a][1]) then
       if os.difftime(os.time(), now) <= 5 then
         num_correct = num_correct + 1
       end
+    elseif get_hamming_distance(vocs[a][1],vocs[a][2]) <= 2 then
+      num_correct = num_correct + 0.5
     end
     
     io.write( "\n" )
@@ -206,35 +209,6 @@ function get_practise_mode()
   io.write("Choose mode:\n\t[1]German -> French\n\t[2]French -> German\n\t[3]Hardcore\n")
   return tonumber(io.read())
 end
-function choose_option(command,message) -- get command,list options and returns choosen answer
-  io.write(message)
-  
-  local tmp_file = assert(io.popen(command))
-  local options,index = {},1
-  
-  for line in tmp_file:lines() do
-    if line ~= "Score.txt" then
-      options[index] = line
-      io.write(string.format("\t[%d] %s\n",index,line))
-      index = index + 1
-    end
-  end
-  
-  tmp_file:close()
-  io.write("\n")
-  local answer = io.read() 
-  
-  if(tonumber(answer) == nil) then
-    for key,value in ipairs(options) do
-      if(value:match(answer)) then
-        return options[key]
-      end
-    end
-  end
-  
-  return options[tonumber(answer)]
-end
-
 
 -- Scorekeeping 
 function sorted_iterator(unsorted_table, order_function) 
@@ -277,7 +251,7 @@ function score_check(practise_score)
   
   if if_new then
     best_score = score
-    t[practise_mode] = score
+    scores[practise_mode] = score
     file_content = file_content .. string.format("%s : %3.2f : %3.2f : %3.2f\n",file_name,scores[1],scores[2],scores[3])
   end
   
@@ -318,10 +292,10 @@ function check_arguments(...)
 end
 function parse_argument(argument)
   if(argument:find("folder")) then -- mayby to lookup table
-    folder_name = argument:match("=(.+)")
+    folder_name = get_best_match("folder",argument:match("=(.+)"),"")
   elseif(argument:find("file")) then
-    argument = argument .. ","
-    parse_lists(argument:gmatch("(%w+),"))
+    argument = (string.sub(argument,6)) .. ","
+    parse_lists(argument:gmatch("[^,]+"))
   elseif(argument:find("mode")) then 
     practise_mode = tonumber(argument:match("%d"))
   elseif(argument:find("audio")) then
@@ -335,8 +309,8 @@ end
 function parse_lists(iterator) 
   local index = 1
   if iterator ~= nil then
-    for v in iterator do
-      file_list[index] = v
+    for value in iterator do
+      file_list[index] = get_best_match("file",value,folder_name)
       index = index + 1
     end
     next_file_from_list()
@@ -353,6 +327,76 @@ end
 
 
 -- small helper functions
+function choose_option(option,command,message) -- get command,list options and returns choosen answer
+  io.write(message)
+  
+  local tmp_file = assert(io.popen(command))
+  local options,index = {},1
+  
+  for line in tmp_file:lines() do
+    if line ~= "Score" then
+      options[index] = line
+      io.write(string.format("\t[%d] %s\n",index,line))
+      index = index + 1
+    end
+  end
+  
+  tmp_file:close()
+  io.write("\n")
+  local answer = io.read() 
+  
+  if(tonumber(answer) == nil) then
+    for k,v in ipairs(options) do
+      if(v:match(answer)) then
+        return options[k]
+      end
+    end
+  end
+  return options[tonumber(answer)]
+end
+function get_best_match(option,to_match,given_folder)
+  local tmp_folder = ""
+  local list_of_folder = assert(io.popen("ls -d */"))
+  if option == "folder"  then
+    for folder in list_of_folder:lines() do
+      if(folder:match(to_match)) then
+        list_of_folder:close()
+        return folder
+    end
+  end
+  elseif option == "file" then
+    if given_folder ~="" then
+      local list_of_files = assert(io.popen("ls " .. given_folder .. " -tr | sed s'/.txt//'"))
+      for file in list_of_files:lines() do
+          if(file:match(to_match)) then
+              list_of_folder:close()
+              list_of_files:close()
+              return file
+          end
+        end
+    else
+      for folder in list_of_folder:lines() do
+        local list_of_files = assert(io.popen("ls " .. folder .. " -tr | sed s'/.txt//'"))
+        for file in list_of_files:lines() do
+          if(file:match(to_match)) then
+              list_of_folder:close()
+              list_of_files:close()
+            return file
+          end
+        end
+      end
+    end
+  end
+end
+function get_hamming_distance(s1,s2)
+  local diff = 0
+  local length = math.min(#s1,#s2)
+  for index = 0, length do
+    
+    diff = s1:sub(index,index) == s2:sub(index,index) and diff or diff + 1
+  end
+  return diff + (#s1<#s2 and #s2-#s1 or #s1-#s2)
+end
 function int_divide(a,b)
   return (a-a%b)/b
 end
@@ -380,6 +424,7 @@ audio_speed = "medium" -- slow/fast
 
 check_arguments(...)
 setup()
+
 
 --TODO LATER
 function read_file_to_audio(f_name) -- not really working as intended
