@@ -44,10 +44,11 @@ math.random()
 function setup() -- not pretty, but works for now
   io.write(string.format("Choose Option:\n\t[1]Practise\n\t[2]Add Vocs\n\t[3]Show Scores\n\t[4]Show all Lessons\n"))
   local answ = tonumber(io.read())
+  io.write("\n")
   
   if answ == 1 then -- this is so ugly, but a lookup table wont work
     folder_name = folder_name~="" and folder_name or choose_option("folder","ls -d */", "Choose folder:\n")
-    file_name = file_name~="" and file_name or choose_option("file","ls " .. folder_name .. " -tr | sed s'/.txt//'", "\nChoose file:\n")
+    file_name = file_name~="" and file_name or choose_option("file","ls " .. folder_name .. " -tr | sed s'/.txt//'", "Choose file:\n")
     file_list[1] = file_list[1] and file_list[1] or file_name
     practise_mode = practise_mode~=0 and practise_mode or get_practise_mode()
     practise()
@@ -66,7 +67,8 @@ end
 function practise()
   
   for _=1,#file_list do
-    io.write(string.format("\nNow testing : %s\n",file_name))
+    local a = string.rep("─",16+#file_name)
+    io.write(string.format("\n\n%s\nNow testing : %s\n%s\n",a,file_name,a))
     if practise_mode == 3 then 
       comp_practise()
       return
@@ -111,7 +113,8 @@ function comp_practise()
   local vocs = {}
   local voc_file = io.input(folder_name .. file_name .. ".txt")
   local line_ctr,word_ctr,num_correct,result = 1,1,0,0
-  local rnd, now = 0,0
+  local rnd, time_now = 0,0
+  local ans = ""
   
   for line in voc_file:lines() do
     vocs[line_ctr] = {}
@@ -127,15 +130,16 @@ function comp_practise()
   shuffle_array(vocs, line_ctr)
     
   for a = 1, line_ctr - 1 do
-    now = os.time()
+    time_now = os.time()
     rnd = int_divide(math.random(), 0.5)
     io.write((rnd == 1 and (vocs[a][1] .. " in french: ") or (vocs[a][2] .. " in german: ")))
+    ans  = io.stdin:read()
     
-    if io.stdin:read() == (rnd and vocs[a][2] or vocs[a][1]) then
-      if os.difftime(os.time(), now) <= 5 then
+    if ans == (rnd == 1 and vocs[a][2] or vocs[a][1]) then
+      if os.difftime(os.time(), time_now) <= 5 then
         num_correct = num_correct + 1
       end
-    elseif get_hamming_distance(vocs[a][1],vocs[a][2]) <= 2 then
+    elseif get_hamming_distance(ans,(rnd == 1 and vocs[a][2] or vocs[a][1])) <= (#ans/4) then
       num_correct = num_correct + 0.5
     end
     
@@ -342,8 +346,8 @@ function choose_option(option,command,message) -- get command,list options and r
   end
   
   tmp_file:close()
+  local answer = io.read()
   io.write("\n")
-  local answer = io.read() 
   
   if(tonumber(answer) == nil) then
     for k,v in ipairs(options) do
