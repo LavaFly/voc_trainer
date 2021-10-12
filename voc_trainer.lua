@@ -12,7 +12,7 @@
   Possible Arguments to Script ( eg. voc_trainer.lua folder=this file=that mode=3 )
    folder=n    recommended from bottom up
    file=n,m,... 
-   mode=1,2,3
+   mode=1,2,3,i,1i,2i,3i
    audio(mode=1,2)(folder=n)(file=n,m,..)(speed=slow/medium/fast)(repeat=n/true) 
    play/pause/stop/help
    
@@ -34,38 +34,82 @@
   - structorize code 
   - remove global variables
   
+  
+  - goto error handling   assert(type(in) == correct, error-message) pcall xpcall
+  - show improvement of % after practise
+  
 ]]--
 -- 
+require 'utf8'
 math.randomseed(os.time())
 math.random()
 math.random()
 
 -- main functions
-function setup() -- not pretty, but works for now
-  io.write(string.format("Choose Option:\n\t[1]Practise\n\t[2]Add Vocs\n\t[3]Show Scores\n\t[4]Show all Lessons\n"))
-  local answ = tonumber(io.read())
-  io.write("\n")
+function second_setup() -- funciton for each case, lookup table
   
-  if answ == 1 then -- this is so ugly, but a lookup table wont work
-    folder_name = folder_name~="" and folder_name or choose_option("folder","ls -d */", "Choose folder:\n")
-    file_name = file_name~="" and file_name or choose_option("file","ls " .. folder_name .. " -tr | sed s'/.txt//'", "Choose file:\n")
+  local answ = choose_option(first_options, "Choose Option:\n")
+  if answ == 1 then
+    folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
+    file_name = file_name~="" and file_name or choose_option("ls " .. folder_name .. " -tr | sed s'/.txt//'", "Choose file:\n")
     file_list[1] = file_list[1] and file_list[1] or file_name
     practise_mode = practise_mode~=0 and practise_mode or get_practise_mode()
     practise()
   elseif answ == 2 then
-    folder_name = folder_name~="" and folder_name or choose_option("folder","ls -d */", "Choose folder:\n")
+    answ = choose_option(file_options,"Choose Option:\n")
+    if answ == 1 then
+      folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
+      new_voc()
+    elseif answ == 2 then
+      folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
+      file_name = file_name~="" and file_name or choose_option("ls " .. folder_name .. " -tr | sed s'/.txt//'", "Choose file:\n")
+      file_list[1] = file_list[1] and file_list[1] or file_name
+      view_file()
+    elseif answ == 3 then
+      -- add remove file function !!
+    elseif answ == 4 then
+      complete_overview()
+    else
+      io.write("kk")
+    end
+  elseif answ == 3 then
+    folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
+    score_overview()
+  else
+    io.write("idk what to do")
+  end
+end
+function setup() 
+  
+  io.write(string.format("Choose Option:\n\t[1]Practise\n\t[2]Add Vocs\n\t[3]Show Scores\n\t[4]Show all Lessons\n\t[5]View File\n"))
+  local answ = tonumber(io.read())
+  io.write("\n")
+  
+  if answ == 1 then -- this is so ugly, but a lookup table wont work
+    folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
+    file_name = file_name~="" and file_name or choose_option("ls " .. folder_name .. " -tr | sed s'/.txt//'", "Choose file:\n")
+    file_list[1] = file_list[1] and file_list[1] or file_name
+    practise_mode = practise_mode~=0 and practise_mode or get_practise_mode()
+    practise()
+  elseif answ == 2 then
+    folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
     new_voc()
   elseif answ == 3 then
-    folder_name = folder_name~="" and folder_name or choose_option("folder","ls -d */", "Choose folder:\n")
+    folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
     score_overview()
   elseif answ == 4 then
     complete_overview()
+  elseif answ == 5 then
+    folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
+    file_name = file_name~="" and file_name or choose_option("ls " .. folder_name .. " -tr | sed s'/.txt//'", "Choose file:\n")
+    file_list[1] = file_list[1] and file_list[1] or file_name
+    view_file()
   else
     io.write("idk what to do")
   end
 end
 function practise()
-  
+  -- :: practise_start :: 
   for _=1,#file_list do
     local a = string.rep("─",16+#file_name)
     io.write(string.format("\n\n%s\nNow testing : %s\n%s\n",a,file_name,a))
@@ -76,36 +120,38 @@ function practise()
     local vocs = {}
     local voc_file = io.input(folder_name .. file_name .. ".txt")
     local line_ctr,word_ctr,num_correct,result = 1,1,0,0
+    local ans = ""
   
     for line in voc_file:lines() do
       vocs[line_ctr] = {}
-      for i in line:gmatch("[^,?]*") do
-        vocs[line_ctr][word_ctr] = i
-        word_ctr = word_ctr + 1
+      for word in line:gmatch("[^,?]*") do
+        vocs[line_ctr][word_ctr] = word
+        word_ctr = (word_ctr + 1) % 2
       end
-      word_ctr = 1
       line_ctr = line_ctr + 1
     end
   
     voc_file:close()
     shuffle_array(vocs,line_ctr)
   
-    for a = 1,line_ctr - 1,1 do
-      io.write((practise_mode == 1 and (vocs[a][1] .. " in french: ") or (vocs[a][2] .. " in german: ")))
-      if io.stdin:read() == (practise_mode == 1 and (vocs[a][2]) or (vocs[a][1])) then
+    for i = 1,line_ctr - 1,1 do
+      io.write((practise_mode == 1 and (vocs[i][0] .. " in french: ") or (vocs[i][1] .. " in german: ")))
+      answer = io.stdin:read()
+      if answer == (practise_mode == 1 and (vocs[i][1]) or (vocs[i][0])) then
         io.write(" ->correct\n")
         num_correct = num_correct + 1
       else
-        if get_hamming_distance(vocs[a][1],vocs[a][2]) <= 2 then
+        if get_hamming_distance(answer,(rnd == 1 and vocs[i][1] or vocs[i][0])) <= (#ans/4) then
           num_correct = num_correct + 0.5
         end
-        io.write(" ->false " .. (practise_mode == 1 and (vocs[a][2]) or (vocs[a][1])) .. "\n")
+        io.write(" ->false " .. (practise_mode == 1 and (vocs[i][1]) or (vocs[i][0])) .. "\n")
       end
     end
     result = (num_correct / (line_ctr - 1)) * 100
     local best_score = tonumber(score_check(result))
     io.write(string.format("\n%d out of %d were correct(%3.2f%%)\n",num_correct,line_ctr - 1,result))
     io.write(string.format("\nBest Score : %3.2f%%\n",best_score))
+    -- if(infinite_practise) then goto practise_start end
     next_file_from_list()
   end
 end
@@ -118,28 +164,27 @@ function comp_practise()
   
   for line in voc_file:lines() do
     vocs[line_ctr] = {}
-    for i in line:gmatch("[^,?]*") do
-      vocs[line_ctr][word_ctr] = i
-      word_ctr = word_ctr + 1
+    for word in line:gmatch("[^,?]*") do
+      vocs[line_ctr][word_ctr] = word
+      word_ctr = (word_ctr + 1) % 2
     end
-    word_ctr = 1
     line_ctr = line_ctr + 1
   end
   
   voc_file:close()
   shuffle_array(vocs, line_ctr)
     
-  for a = 1, line_ctr - 1 do
+  for i = 1, line_ctr - 1 do
     time_now = os.time()
     rnd = int_divide(math.random(), 0.5)
-    io.write((rnd == 1 and (vocs[a][1] .. " in french: ") or (vocs[a][2] .. " in german: ")))
-    ans  = io.stdin:read()
+    io.write((rnd == 1 and (vocs[i][0] .. " in french: ") or (vocs[i][1] .. " in german: ")))
+    answer = io.stdin:read()
     
-    if ans == (rnd == 1 and vocs[a][2] or vocs[a][1]) then
+    if answer == (rnd == 1 and vocs[i][1] or vocs[i][0]) then
       if os.difftime(os.time(), time_now) <= 5 then
         num_correct = num_correct + 1
       end
-    elseif get_hamming_distance(ans,(rnd == 1 and vocs[a][2] or vocs[a][1])) <= (#ans/4) then
+    elseif get_hamming_distance(answer,(rnd == 1 and vocs[i][1] or vocs[i][0])) <= (#ans/4) then
       num_correct = num_correct + 0.5
     end
     
@@ -151,21 +196,29 @@ function comp_practise()
   io.write(string.format("\nBest Score : %3.2f%%\n",best_score))
 end
 function new_voc()
+  --[[
+    Valid Input examples:
+      hello bonjour
+      hello,bonjour
+      hello, bonjour
+      hello  bonjour
+      I am  Je suis
+      I am,Je suis
+      I am, Je suis
+  ]]--
+  
   io.write("Name File(if existing, will append):")
   file_name = io.read()
   score_check(file_name,0.0,1)
   local buffer = ""
   io.write("Write 'exit' to end\n")
   repeat
-    buffer = buffer .. io.stdin:read() .. "\n"
+    buffer = buffer .. parse_new_vocs(trim(io.stdin:read())) .. "\n"
   until(buffer:match("exit"))
   local new_vocs = io.open(folder_name .. file_name .. ".txt", "a+")
-  new_vocs:write(buffer:sub(0,#buffer-5)) -- cutting out the "exit"
+  new_vocs:write(buffer:sub(0,utf8.len(buffer)-5)) -- cutting out the "exit"
   new_vocs:close()
 end
-
-
-
 function score_overview() 
   local score_file = io.input(folder_name .. "Score.txt")
   local score_table,tmp_scores = {},{0,0,0}
@@ -210,10 +263,35 @@ function complete_overview() -- cleanup output
   folder_list:close()
 end
 function get_practise_mode()
-  io.write("Choose mode:\n\t[1]German -> French\n\t[2]French -> German\n\t[3]Hardcore\n")
+  io.write("Choose mode:\n\t[1]German -> French\n\t[2]French -> German\n\t[3]Hardcore\n\t[i]Infinite\n")
   return tonumber(io.read())
 end
-
+function view_file()
+  local vocs = {}
+  local voc_file = io.input(folder_name .. file_name .. ".txt")
+  local line_ctr,word_ctr,longest_word = 1,0,0
+  local ans = ""
+  
+  for line in voc_file:lines() do
+    vocs[line_ctr] = {}
+    for word in line:gmatch("[^,?]*") do
+      vocs[line_ctr][word_ctr] = word
+      longest_word = math.max(longest_word,#word)
+      word_ctr = (word_ctr + 1) % 2
+    end
+    line_ctr = line_ctr + 1
+  end
+  
+  voc_file:close()
+  local header = string.format("┌%s┐\n│ %s │\n├%s┬%s┤\n",string.rep("─",2 * longest_word + 5),variable_padding(file_name,longest_word * 2 + 3),string.rep("─",longest_word + 2),string.rep("─",longest_word + 2))
+  local bottom = string.format("└%s┴%s┘\n",string.rep("─",longest_word + 2),string.rep("─",longest_word + 2))
+  io.write(header)
+  for i = 1, line_ctr-1 do
+    io.write(string.format("│ %s │ %s │\n",variable_padding(vocs[i][0],longest_word),variable_padding(vocs[i][1],longest_word)))    
+  end
+  io.write(bottom)
+  
+end
 -- Scorekeeping 
 function sorted_iterator(unsorted_table, order_function) 
   local keys,index = {},0
@@ -260,7 +338,7 @@ function score_check(practise_score)
   end
   
   score_file:close()
-  score_file = io.open("vocs_from_book/Score.txt", "w+") -- override file with updated scores
+  score_file = io.open(folder_name .. "Score.txt", "w+") -- override file with updated scores
   score_file:write(file_content)
   score_file:close()
   
@@ -277,8 +355,8 @@ function color_score(score_value) -- colos[val] + string + \27[0m => colored str
   -- ^ will not work with string padding(eg. string.format("%10s",s)), color_padding is the workaround for that
 end
 function variable_padding(org_string,max_len)
-  if(#org_string < max_len) then
-    return org_string .. string.rep(" ",(max_len-#org_string))
+  if(utf8.len(org_string) < max_len) then -- #org_string and string.len wont work with certain chars(eg. äö êé etc.) due to counting bytes not chars
+    return org_string .. string.rep(" ",(max_len-utf8.len(org_string))) 
   end
   return org_string
 end
@@ -314,7 +392,13 @@ function parse_lists(iterator)
   local index = 1
   if iterator ~= nil then
     for value in iterator do
+      if value == "all" then --  !!!MAY CAUSE ERROR!!!
+        clear_table(file_list)
+        select_table()
+        return
+      end
       file_list[index] = get_best_match("file",value,folder_name)
+      print(file_list[index])
       index = index + 1
     end
     next_file_from_list()
@@ -331,27 +415,57 @@ end
 
 
 -- small helper functions
-function choose_option(option,command,message) -- get command,list options and returns choosen answer
+function parse_new_vocs(input_str)
+  local i = input_str:find("  ")
+  if(i ~= nil) then
+    return string.format("%s,%s\n",input_str:sub(1,i-1),input_str:sub(i+2,utf8.len(input_str)))
+  else  
+    i = input_str:find(" ")
+    return i == nil and input_str or (string.format("%s,%s",input_str:sub(1,i-1),input_str:sub(i+1,utf8.len(input_str))))
+  end
+end
+function reset_globals()
+  file_list = {}
+  folder_name,file_name = "",""
+  practise_mode = 0
+  audio_mode = false
+  audio_speed = "medium"
+end
+function choose_option(content,message) -- get command &| list options and returns choosen answer
+  -- content is either a command to get the options or a table containing the options
   io.write(message)
   
-  local tmp_file = assert(io.popen(command))
   local options,index = {},1
-  
-  for line in tmp_file:lines() do
-    if line ~= "Score" then
-      options[index] = line
-      io.write(string.format("\t[%d] %s\n",index,line))
-      index = index + 1
+  if type(content) == "string" then
+    local tmp_file = assert(io.popen(content))
+    for line in tmp_file:lines() do
+      if line ~= "Score" then
+        options[index] = line
+        io.write(string.format("\t[%d] %s\n",index,line))
+        index = index + 1
+      end
+    end
+    tmp_file:close()
+  else 
+  for k,v in ipairs(content) do
+    options[k] = v
+    io.write(string.format("\t[%d] %s\n",k,v))
     end
   end
-  
-  tmp_file:close()
   local answer = io.read()
-  io.write("\n")
   
-  if(tonumber(answer) == nil) then
+  io.write("\n")
+  --
+  local num, lett = answer:match("(%d*)(i?)")
+  --  select_folder()
+  --end
+  --
+  if(options[answer] == nil) then
     for k,v in ipairs(options) do
-      if(v:match(answer)) then
+      if(v:match(answer)) then --  or k:match(answer)
+        if(type(content) ~= "string") then
+          return 
+        end
         return options[k]
       end
     end
@@ -363,7 +477,7 @@ function get_best_match(option,to_match,given_folder)
   local list_of_folder = assert(io.popen("ls -d */"))
   if option == "folder"  then
     for folder in list_of_folder:lines() do
-      if(folder:match(to_match)) then
+      if(folder:match(to_match) or to_match == '*') then
         list_of_folder:close()
         return folder
     end
@@ -372,7 +486,7 @@ function get_best_match(option,to_match,given_folder)
     if given_folder ~="" then
       local list_of_files = assert(io.popen("ls " .. given_folder .. " -tr | sed s'/.txt//'"))
       for file in list_of_files:lines() do
-          if(file:match(to_match)) then
+          if(file:match(to_match) or to_match == '*') then
               list_of_folder:close()
               list_of_files:close()
               return file
@@ -382,7 +496,7 @@ function get_best_match(option,to_match,given_folder)
       for folder in list_of_folder:lines() do
         local list_of_files = assert(io.popen("ls " .. folder .. " -tr | sed s'/.txt//'"))
         for file in list_of_files:lines() do
-          if(file:match(to_match)) then
+          if(file:match(to_match) or to_match == '*') then
               list_of_folder:close()
               list_of_files:close()
             return file
@@ -394,12 +508,12 @@ function get_best_match(option,to_match,given_folder)
 end
 function get_hamming_distance(s1,s2)
   local diff = 0
-  local length = math.min(#s1,#s2)
+  local len_s1, len_s2 = utf8.len(s1), utf8.len(s2)
+  local length = math.min(len_s1,len_s2)
   for index = 0, length do
-    
     diff = s1:sub(index,index) == s2:sub(index,index) and diff or diff + 1
   end
-  return diff + (#s1<#s2 and #s2-#s1 or #s1-#s2)
+  return diff + math.abs(len_s1 - len_s2)
 end
 function int_divide(a,b)
   return (a-a%b)/b
@@ -417,6 +531,29 @@ function shuffle_array(array,array_len) -- Fisher-Yates-Shuffle
     array[index],array[random_index] = array[random_index],array[index]
   end
 end
+function trim(s) -- removes leading/trailing whitespace
+  return (s:gsub("^%s*(.-)%s*$", "%1"))
+end
+function parsed(s) -- mayby later
+  pars = ""
+  for word in s:gmatch(",?(%a+),?") do  -- [^,]*
+    --print(word)
+    if trim(word) ~= nil then
+    --  pars = pars .. ":" .. trim(word)
+      print(trim(word) .. ";END")
+    end
+  end
+end
+function select_folder() -- adds complete folder to file_list
+  folder_name = folder_name~="" and folder_name or choose_option("ls -d */", "Choose folder:\n")
+  local list_of_files = assert(io.popen("ls " .. folder_name .. " -tr | sed s'/.txt//'"))
+  parse_lists(list_of_files:lines()) 
+end
+function clear_table(table)
+  for k,_ in ipairs(table) do
+    table[k] = nil
+  end
+end
 -- main part
 
 file_list = {}
@@ -424,7 +561,10 @@ folder_name,file_name = "",""
 practise_mode = 0
 audio_mode = false
 audio_speed = "medium" -- slow/fast
+infinite_practise = false
 
+
+--select_folder()
 
 check_arguments(...)
 setup()
